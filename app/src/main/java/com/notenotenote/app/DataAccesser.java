@@ -1,6 +1,7 @@
 package com.notenotenote.app;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 /**
@@ -11,11 +12,19 @@ public class DataAccesser extends SQLiteOpenHelper{
     private final static String DB_TABLENAME = "MyNotes";
     private final static int DB_VER = 1;
 
+    public final static String TABLE_NOTEID = "NoteID";
+    public final static String TABLE_NOTE = "Note";
+    public final static String TABLE_LASTUPDATEDATE = "LastUpdateDate";
+
     private final static String QUERY_CREATE = "CREATE TABLE IF NOT EXISTS "
         + DB_TABLENAME
-        + " (ArticleID INTEGER PRIMARY KEY AUTOINCREMENT"
-        + " ,Article TEXT"
-        + " ,LastUpdateDate DATETIME)";
+        + " ("
+        + TABLE_NOTEID
+        + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+        + TABLE_NOTE
+        + " TEXT, "
+        + TABLE_LASTUPDATEDATE
+        + " DATETIME)";
 
     public DataAccesser(Context context) {
         super(context, DB_NAME, null, DB_VER);
@@ -38,7 +47,7 @@ public class DataAccesser extends SQLiteOpenHelper{
     public void updateNote(SQLiteDatabase db, String strNoteId, String strEditedNote){
     }
     // 登録済みのNoteデータを取得(MainViewActivityに表示)
-    public void prepareExistingNote(SQLiteDatabase db){
-        System.out.println("Select");
+    public Cursor prepareExistingNote(SQLiteDatabase db){
+        return db.query(DB_TABLENAME, null, null, null, null, null, TABLE_LASTUPDATEDATE + " desc", null);
     }
 }
