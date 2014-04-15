@@ -20,7 +20,7 @@
         android:id="@+id/btnLastText"
         android:textSize="22sp"
         android:textColor="#000000"
-        android:gravity="center"
+        android:gravity="top|left"
         android:background="#D8F781"
         android:onClick="openEditView"
         />

@@ -2,11 +2,18 @@ package com.notenotenote.app;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.text.SpannableStringBuilder;
 import android.view.Menu;
 import android.view.MenuItem;
-
+import android.database.sqlite.SQLiteDatabase;
+import android.widget.EditText;
 
 public class EditViewActivity extends Activity {
+
+    private static DataAccesser _datAccesser;
+    private static SQLiteDatabase _db;
+    private EditText _etxEditedNote;
+    private SpannableStringBuilder _ssbEditedNote;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,8 +24,6 @@ public class EditViewActivity extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.edit_view, menu);
         return true;
     }
@@ -26,10 +31,29 @@ public class EditViewActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
+
+        if (id == R.id.action_save) {
+            // ここからDBに登録。このBool値は何処に戻る？
+            this.insertNote();
             return true;
         }
-        return super.onOptionsItemSelected(item);
+        return false;
     }
+    private void insertNote(){
+        _datAccesser = new DataAccesser(this);
+        _db = _datAccesser.getWritableDatabase();
 
+        _etxEditedNote = (EditText)findViewById(R.id.txtEditView);
+        _ssbEditedNote = (SpannableStringBuilder)_etxEditedNote.getText();
+
+        System.out.println(_ssbEditedNote.toString());
+
+        long lngResult = _datAccesser.insertNewNote(_db, _ssbEditedNote.toString());
+
+        if(0 > lngResult){
+            System.out.println("failed");
+        }else{
+            System.out.println("Succeeded");
+        }
+    }
 }

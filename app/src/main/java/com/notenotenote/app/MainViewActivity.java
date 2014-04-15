@@ -31,21 +31,21 @@ public class MainViewActivity extends Activity {
         Cursor csrNote = _datAccesser.prepareExistingNote(_db);
 
         _intNoteCount = csrNote.getCount();
-        // DBにデータが1件以上ある場合はID, Noteを取得する
+        // DBにデータが1件以上ある場合はID, Noteを取得する.
         if(0 < _intNoteCount){
         	_intNoteIds = new int[_intNoteCount];
         	_strNotes = new String[_intNoteCount];
         	for(int i = 0; _intNoteCount > i; i++){
-        		_intNoteIds[i] = csrNote.getInt(csrNote.getColumnIndex(_datAccesser.TABLE_NOTEID));
-                _strNotes[i] = csrNote.getString(csrNote.getColumnIndex(_datAccesser.TABLE_NOTE));
+                if(csrNote.moveToNext()) {
+                    _intNoteIds[i] = csrNote.getInt(csrNote.getColumnIndex(_datAccesser.TABLE_NOTEID));
+                    _strNotes[i] = csrNote.getString(csrNote.getColumnIndex(_datAccesser.TABLE_NOTE));
+                }
         	}
         }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
-      // Inflate the menu; this adds items to the action bar if it is present.
       getMenuInflater().inflate(R.menu.main_view, menu);
       return true;
     }

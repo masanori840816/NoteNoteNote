@@ -1,9 +1,11 @@
 package com.notenotenote.app;
 
 import android.content.Context;
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
 /**
  * Created by m_masanori on 2014/04/12.
  */
@@ -15,6 +17,8 @@ public class DataAccesser extends SQLiteOpenHelper{
     public final static String TABLE_NOTEID = "NoteID";
     public final static String TABLE_NOTE = "Note";
     public final static String TABLE_LASTUPDATEDATE = "LastUpdateDate";
+
+    private ContentValues _ctvContents;
 
     private final static String QUERY_CREATE = "CREATE TABLE IF NOT EXISTS "
         + DB_TABLENAME
@@ -40,8 +44,15 @@ public class DataAccesser extends SQLiteOpenHelper{
 
     }
     // Noteの新規追加
-    public void insertNewNote(SQLiteDatabase db, String strNewNote){
+    public long insertNewNote(SQLiteDatabase db, String strNewNote){
+        _ctvContents = new ContentValues();
+        long lngResult = -1;
 
+        _ctvContents.put(TABLE_NOTE, strNewNote);
+        _ctvContents.put(TABLE_LASTUPDATEDATE, java.lang.System.currentTimeMillis());
+        lngResult = db.insert(DB_TABLENAME, null, _ctvContents);
+
+        return lngResult;
     }
     // Noteの更新
     public void updateNote(SQLiteDatabase db, String strNoteId, String strEditedNote){
