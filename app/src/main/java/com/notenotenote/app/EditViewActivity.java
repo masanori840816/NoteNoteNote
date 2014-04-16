@@ -11,7 +11,7 @@ import android.widget.EditText;
 public class EditViewActivity extends Activity {
 
     private static DataAccesser _datAccesser;
-    private static SQLiteDatabase _db;
+    private static SQLiteDatabase _sqlDb;
     private EditText _etxEditedNote;
     private SpannableStringBuilder _ssbEditedNote;
 
@@ -33,7 +33,6 @@ public class EditViewActivity extends Activity {
         int id = item.getItemId();
 
         if (id == R.id.action_save) {
-            // ここからDBに登録。このBool値は何処に戻る？
             this.insertNote();
             return true;
         }
@@ -41,14 +40,12 @@ public class EditViewActivity extends Activity {
     }
     private void insertNote(){
         _datAccesser = new DataAccesser(this);
-        _db = _datAccesser.getWritableDatabase();
+        _sqlDb = _datAccesser.getWritableDatabase();
 
         _etxEditedNote = (EditText)findViewById(R.id.txtEditView);
         _ssbEditedNote = (SpannableStringBuilder)_etxEditedNote.getText();
 
-        System.out.println(_ssbEditedNote.toString());
-
-        long lngResult = _datAccesser.insertNewNote(_db, _ssbEditedNote.toString());
+        long lngResult = _datAccesser.insertNewNote(_sqlDb, _ssbEditedNote.toString());
 
         if(0 > lngResult){
             System.out.println("failed");
