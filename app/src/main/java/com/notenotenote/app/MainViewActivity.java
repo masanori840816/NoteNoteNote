@@ -19,13 +19,13 @@ import java.util.List;
 
 public class MainViewActivity extends Activity {
 
-    private LinearLayout.LayoutParams _lypNotes
-             = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
     private Button[] _btnNotes;
     private List<Integer> _lstNoteId;
     private View.OnClickListener _oclClickListener;
 
     private LinearLayout _llyMain;
+    // 最新のNote or 0件の場合は新規作成を表示するボタンのLayout
+    private LinearLayout _llyLastNote;
 
     private int _intNoteCount = 0;
 
@@ -35,9 +35,10 @@ public class MainViewActivity extends Activity {
         setContentView(R.layout.activity_main_view);
 
         _llyMain = (LinearLayout) findViewById(R.id.llyMainView);
+        _llyLastNote = (LinearLayout) findViewById(R.id.llyLastNote);
 
-      this.prepareOnClickListener();
-      this.prepareNoteData();
+        this.prepareOnClickListener();
+        this.prepareNoteData();
     }
     private void prepareNoteData(){
         DataAccesser datAccesser = new DataAccesser(this);
@@ -55,13 +56,12 @@ public class MainViewActivity extends Activity {
             Point pntDisplaySize = new Point();
             dspDisplay.getSize(pntDisplaySize);
 
-            // 最新のNote or 0件の場合は新規作成を表示するボタンのLayout
-            LinearLayout llyLastNote = new LinearLayout(this);
             // 2件目以降のLayout
-            LinearLayout llyOtherNote = new LinearLayout(this);
+            LinearLayout[] llyOtherNotes = new LinearLayout[(int)Math.ceil(_intNoteCount / 3)];
+            int intLayoutCount = 0;
+
+            llyOtherNotes[intLayoutCount] = new LinearLayout(this);
             int intItemCount = 0;
-            // マージンをセットする
-            _lypNotes.setMargins(0, 0, 0, 0);
 
             _btnNotes = new Button[_intNoteCount];
             _lstNoteId = new ArrayList<Integer>();
@@ -76,38 +76,36 @@ public class MainViewActivity extends Activity {
                     _btnNotes[i].setText(csrNote.getString(csrNote.getColumnIndex(datAccesser.TABLE_NOTE)));
                     // Clickイベント追加
                     _btnNotes[i].setOnClickListener(_oclClickListener);
-                    _btnNotes[i].setLayoutParams(_lypNotes);
 
                     if(i == 0){
                         // 左右のマージン分マイナス
                         _btnNotes[i].setWidth(pntDisplaySize.x);
                         _btnNotes[i].setHeight(pntDisplaySize.y / 3);
                         // RelativeLayoutに追加
-                        llyLastNote.addView(_btnNotes[i]);
-                        _llyMain.addView(llyLastNote);
+                        _llyLastNote.addView(_btnNotes[i]);
                     }else{
-                        _btnNotes[i].setWidth(pntDisplaySize.x / 3 - 20);
+                        _btnNotes[i].setWidth(pntDisplaySize.x / 3 - 10);
                         _btnNotes[i].setHeight(pntDisplaySize.y / 6);
 
                         if(3 > intItemCount){
                             // 最新のNote以外は横に3件ずつ並べる
-                            llyOtherNote.addView(_btnNotes[i]);
+                            llyOtherNotes[intLayoutCount].addView(_btnNotes[i]);
                             intItemCount++;
                         }else{
-                            /*System.out.println("addLayout");
-                            llyOtherNote.addView(_btnNotes[i]);
-                            _llyMain.addView(llyOtherNote);
+                            _llyMain.addView(llyOtherNotes[intLayoutCount]);
+
+                            intLayoutCount++;
                             // 次のアイテムを入れるLayout
-                            //llyOtherNote = new LinearLayout(this);
-                            //llyOtherNote.addView(_btnNotes[i]);
-                            intItemCount = 1;*/
+                            llyOtherNotes[intLayoutCount] = new LinearLayout(this);
+                            llyOtherNotes[intLayoutCount].addView(_btnNotes[i]);
+                            intItemCount = 1;
                         }
                     }
 
                     _lstNoteId.add(intNoteId);
                 }
         	}
-            _llyMain.addView(llyOtherNote);
+            _llyMain.addView(llyOtherNotes[intLayoutCount]);
         }
         sqlDb.close();
     }
