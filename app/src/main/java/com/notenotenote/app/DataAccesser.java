@@ -51,7 +51,6 @@ public class DataAccesser extends SQLiteOpenHelper{
         _ctvContents.put(TABLE_NOTE, strNewNote);
         _ctvContents.put(TABLE_LASTUPDATEDATE, java.lang.System.currentTimeMillis());
         lngResult = db.insert(DB_TABLENAME, null, _ctvContents);
-
         return lngResult;
     }
     // Noteの更新

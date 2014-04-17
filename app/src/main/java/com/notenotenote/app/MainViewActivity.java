@@ -25,12 +25,17 @@ public class MainViewActivity extends Activity {
     private List<Integer> _lstNoteId;
     private View.OnClickListener _oclClickListener;
 
+    private LinearLayout _llyMain;
+
     private int _intNoteCount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-      super.onCreate(savedInstanceState);
-      setContentView(R.layout.activity_main_view);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main_view);
+
+        _llyMain = (LinearLayout) findViewById(R.id.llyMainView);
+
       this.prepareOnClickListener();
       this.prepareNoteData();
     }
@@ -50,11 +55,13 @@ public class MainViewActivity extends Activity {
             Point pntDisplaySize = new Point();
             dspDisplay.getSize(pntDisplaySize);
 
-            // ボタンを表示するためのレイアウト
-            LinearLayout lnrLayout = new LinearLayout(this);
-            setContentView(lnrLayout);
+            // 最新のNote or 0件の場合は新規作成を表示するボタンのLayout
+            LinearLayout llyLastNote = new LinearLayout(this);
+            // 2件目以降のLayout
+            LinearLayout llyOtherNote = new LinearLayout(this);
+            int intItemCount = 0;
             // マージンをセットする
-            _lypNotes.setMargins(10, 10, 0, 0);
+            _lypNotes.setMargins(0, 0, 0, 0);
 
             _btnNotes = new Button[_intNoteCount];
             _lstNoteId = new ArrayList<Integer>();
@@ -69,21 +76,40 @@ public class MainViewActivity extends Activity {
                     _btnNotes[i].setText(csrNote.getString(csrNote.getColumnIndex(datAccesser.TABLE_NOTE)));
                     // Clickイベント追加
                     _btnNotes[i].setOnClickListener(_oclClickListener);
-                    if(i == 0){
-                        // 左右のマージン分マイナス
-                        _btnNotes[i].setWidth(pntDisplaySize.x - 20);
-                        _btnNotes[i].setHeight(pntDisplaySize.y / 3);
-                    }else{
-                        _btnNotes[i].setWidth(pntDisplaySize.x / 3 - 50);
-                        _btnNotes[i].setHeight(pntDisplaySize.y / 6);
-                    }
                     _btnNotes[i].setLayoutParams(_lypNotes);
 
-                    lnrLayout.addView(_btnNotes[i]);
+                    if(i == 0){
+                        // 左右のマージン分マイナス
+                        _btnNotes[i].setWidth(pntDisplaySize.x);
+                        _btnNotes[i].setHeight(pntDisplaySize.y / 3);
+                        // RelativeLayoutに追加
+                        llyLastNote.addView(_btnNotes[i]);
+                        _llyMain.addView(llyLastNote);
+                    }else{
+                        _btnNotes[i].setWidth(pntDisplaySize.x / 3 - 20);
+                        _btnNotes[i].setHeight(pntDisplaySize.y / 6);
+
+                        if(3 > intItemCount){
+                            // 最新のNote以外は横に3件ずつ並べる
+                            llyOtherNote.addView(_btnNotes[i]);
+                            intItemCount++;
+                        }else{
+                            /*System.out.println("addLayout");
+                            llyOtherNote.addView(_btnNotes[i]);
+                            _llyMain.addView(llyOtherNote);
+                            // 次のアイテムを入れるLayout
+                            //llyOtherNote = new LinearLayout(this);
+                            //llyOtherNote.addView(_btnNotes[i]);
+                            intItemCount = 1;*/
+                        }
+                    }
+
                     _lstNoteId.add(intNoteId);
                 }
         	}
+            _llyMain.addView(llyOtherNote);
         }
+        sqlDb.close();
     }
     private void prepareOnClickListener(){
         _oclClickListener = new View.OnClickListener() {

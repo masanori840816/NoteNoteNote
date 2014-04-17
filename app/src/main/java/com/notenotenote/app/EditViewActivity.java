@@ -52,5 +52,6 @@ public class EditViewActivity extends Activity {
         }else{
             System.out.println("Succeeded");
         }
+        _sqlDb.close();
     }
 }
