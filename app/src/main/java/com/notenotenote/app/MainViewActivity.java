@@ -1,6 +1,7 @@
 package com.notenotenote.app;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.content.Intent;
 import android.graphics.Point;
@@ -12,7 +13,6 @@ import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,30 +41,37 @@ public class MainViewActivity extends Activity {
         this.prepareNoteData();
     }
     private void prepareNoteData(){
+
         DataAccesser datAccesser = new DataAccesser(this);
         SQLiteDatabase sqlDb = datAccesser.getWritableDatabase();
         Cursor csrNote = datAccesser.prepareExistingNote(sqlDb);
 
         _intNoteCount = csrNote.getCount();
 
+        WindowManager mngWindow = (WindowManager)getSystemService(WINDOW_SERVICE);
+
+        // ボタンサイズを調整するために画面サイズを取得
+        Display dspDisplay = mngWindow.getDefaultDisplay();
+        Point pntDisplaySize = new Point();
+        dspDisplay.getSize(pntDisplaySize);
+
+        _lstNoteId = new ArrayList<Integer>();
+
         // DBにデータが1件以上ある場合はID, Noteを取得する.
         if(0 < _intNoteCount){
-            WindowManager mngWindow = (WindowManager)getSystemService(WINDOW_SERVICE);
 
-            // ボタンサイズを調整するために画面サイズを取得
-            Display dspDisplay = mngWindow.getDefaultDisplay();
-            Point pntDisplaySize = new Point();
-            dspDisplay.getSize(pntDisplaySize);
+            LinearLayout.LayoutParams lypOtherNote
+                     = new LinearLayout.LayoutParams((pntDisplaySize.x / 2 - 15), (pntDisplaySize.y / 4));
+            lypOtherNote.setMargins(10, 10, 0, 0);
 
-            // 2件目以降のLayout
-            LinearLayout[] llyOtherNotes = new LinearLayout[(int)Math.ceil(_intNoteCount / 3)];
+            // 2件目以降のLayout。小数点切り上げのためにfloatで計算
+            LinearLayout[] llyOtherNotes = new LinearLayout[(int)Math.ceil((float)_intNoteCount / 2)];
             int intLayoutCount = 0;
 
             llyOtherNotes[intLayoutCount] = new LinearLayout(this);
             int intItemCount = 0;
 
             _btnNotes = new Button[_intNoteCount];
-            _lstNoteId = new ArrayList<Integer>();
 
         	for(int i = 0; _intNoteCount > i; i++){
                 if(csrNote.moveToNext()) {
@@ -74,20 +81,20 @@ public class MainViewActivity extends Activity {
                     int intNoteId = csrNote.getInt(csrNote.getColumnIndex(datAccesser.TABLE_NOTEID));
                     _btnNotes[i].setId(intNoteId);
                     _btnNotes[i].setText(csrNote.getString(csrNote.getColumnIndex(datAccesser.TABLE_NOTE)));
+                    _btnNotes[i].setTextSize(10f);
+                    _btnNotes[i].setBackgroundColor(Color.rgb(230, 230, 255));
                     // Clickイベント追加
                     _btnNotes[i].setOnClickListener(_oclClickListener);
 
                     if(i == 0){
-                        // 左右のマージン分マイナス
                         _btnNotes[i].setWidth(pntDisplaySize.x);
                         _btnNotes[i].setHeight(pntDisplaySize.y / 3);
                         // RelativeLayoutに追加
                         _llyLastNote.addView(_btnNotes[i]);
                     }else{
-                        _btnNotes[i].setWidth(pntDisplaySize.x / 3 - 10);
-                        _btnNotes[i].setHeight(pntDisplaySize.y / 6);
+                        _btnNotes[i].setLayoutParams(lypOtherNote);
 
-                        if(3 > intItemCount){
+                        if(2 > intItemCount){
                             // 最新のNote以外は横に3件ずつ並べる
                             llyOtherNotes[intLayoutCount].addView(_btnNotes[i]);
                             intItemCount++;
@@ -106,6 +113,19 @@ public class MainViewActivity extends Activity {
                 }
         	}
             _llyMain.addView(llyOtherNotes[intLayoutCount]);
+        }else{
+            // データが1件も無い場合は新規作成ボタンを表示する
+            _btnNotes = new Button[1];
+            _btnNotes[0] = new Button(this);
+            _btnNotes[0].setId(0);
+            _btnNotes[0].setText("");
+            _btnNotes[0].setBackgroundColor(Color.rgb(230, 230, 255));
+            // Clickイベント追加
+            _btnNotes[0].setOnClickListener(_oclClickListener);
+            _btnNotes[0].setWidth(pntDisplaySize.x);
+            _btnNotes[0].setHeight(pntDisplaySize.y / 3);
+            // RelativeLayoutに追加
+            _llyLastNote.addView(_btnNotes[0]);
         }
         sqlDb.close();
     }
@@ -114,9 +134,11 @@ public class MainViewActivity extends Activity {
                 @Override
                 public void onClick(View view) {
                     //System.out.println(_lstNoteId.indexOf(view.getId()) + " idIndex" );
-                    Intent ittMoveView = new Intent(MainViewActivity.this, EditViewActivity.class);
+                    Intent ittMainView = new Intent(MainViewActivity.this, EditViewActivity.class);
+                    ittMainView.putExtra("NoteID", _btnNotes[_lstNoteId.indexOf(view.getId())].getId());
+                    ittMainView.putExtra("Note", _btnNotes[_lstNoteId.indexOf(view.getId())].getText());
                     // 次画面のアクティビティ起動
-                    startActivity(ittMoveView);
+                    startActivity(ittMainView);
                 }
             };
     }
