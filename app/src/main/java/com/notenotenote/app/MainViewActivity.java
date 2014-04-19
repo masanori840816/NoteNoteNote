@@ -133,8 +133,10 @@ public class MainViewActivity extends Activity {
         _oclClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    //System.out.println(_lstNoteId.indexOf(view.getId()) + " idIndex" );
                     Intent ittMainView = new Intent(MainViewActivity.this, EditViewActivity.class);
+                    if(0 > view.getId()) {
+                        view.setId(0);
+                    }
                     ittMainView.putExtra("NoteID", _btnNotes[_lstNoteId.indexOf(view.getId())].getId());
                     ittMainView.putExtra("Note", _btnNotes[_lstNoteId.indexOf(view.getId())].getText());
                     // 次画面のアクティビティ起動

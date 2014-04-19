@@ -45,16 +45,36 @@ public class DataAccesser extends SQLiteOpenHelper{
     }
     // Noteの新規追加
     public long insertNewNote(SQLiteDatabase db, String strNewNote){
-        _ctvContents = new ContentValues();
-        long lngResult = -1;
 
-        _ctvContents.put(TABLE_NOTE, strNewNote);
-        _ctvContents.put(TABLE_LASTUPDATEDATE, java.lang.System.currentTimeMillis());
-        lngResult = db.insert(DB_TABLENAME, null, _ctvContents);
-        return lngResult;
+        db.beginTransaction();
+        long lngResult = -1;
+        _ctvContents = new ContentValues();
+        try{
+            _ctvContents.put(TABLE_NOTE, strNewNote);
+            _ctvContents.put(TABLE_LASTUPDATEDATE, java.lang.System.currentTimeMillis());
+            lngResult = db.insert(DB_TABLENAME, null, _ctvContents);
+            db.setTransactionSuccessful();
+        }finally{
+            db.endTransaction();
+            return lngResult;
+        }
     }
     // Noteの更新
-    public void updateNote(SQLiteDatabase db, String strNoteId, String strEditedNote){
+    public long updateNote(SQLiteDatabase db, int intNoteId, String strEditedNote){
+        db.beginTransaction();
+        long lngResult = -1;
+        _ctvContents = new ContentValues();
+        
+        try{
+            _ctvContents.put(TABLE_NOTE, strEditedNote);
+            _ctvContents.put(TABLE_LASTUPDATEDATE, java.lang.System.currentTimeMillis());
+
+            lngResult = db.update(DB_TABLENAME, _ctvContents, TABLE_NOTEID + " = ?", new String[]{"" + intNoteId});
+            db.setTransactionSuccessful();
+        }finally{
+            db.endTransaction();
+            return lngResult;
+        }
     }
     // 登録済みのNoteデータを取得(MainViewActivityに表示)
     public Cursor prepareExistingNote(SQLiteDatabase db){

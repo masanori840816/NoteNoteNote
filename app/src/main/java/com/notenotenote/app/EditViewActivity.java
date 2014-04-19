@@ -14,7 +14,6 @@ public class EditViewActivity extends Activity {
     private static DataAccesser _datAccesser;
     private static SQLiteDatabase _sqlDb;
     private EditText _etxEditedNote;
-    private Intent _iitEditView;
     private SpannableStringBuilder _ssbEditedNote;
 
     @Override
@@ -26,8 +25,7 @@ public class EditViewActivity extends Activity {
     private void prepareNoteEditor(){
         _etxEditedNote = (EditText)findViewById(R.id.txtEditView);
         // MainViewActivityからテキストを受け取り、表示する
-        _iitEditView = getIntent();
-        _etxEditedNote.setText(_iitEditView.getStringExtra("Note"));
+        _etxEditedNote.setText(getIntent().getStringExtra("Note"));
     }
 
     @Override
@@ -41,19 +39,24 @@ public class EditViewActivity extends Activity {
         int id = item.getItemId();
 
         if (id == R.id.action_save) {
-            this.insertNote();
+            this.saveNote();
             return true;
         }
         return false;
     }
-    private void insertNote(){
+    private void saveNote(){
         _datAccesser = new DataAccesser(this);
         _sqlDb = _datAccesser.getWritableDatabase();
 
         _ssbEditedNote = (SpannableStringBuilder)_etxEditedNote.getText();
 
-        long lngResult = _datAccesser.insertNewNote(_sqlDb, _ssbEditedNote.toString());
+        long lngResult = -1;
 
+        if(0 >= getIntent().getIntExtra("NoteID", 0)){
+            lngResult = _datAccesser.insertNewNote(_sqlDb, _ssbEditedNote.toString());
+        }else{
+            lngResult = _datAccesser.updateNote(_sqlDb, getIntent().getIntExtra("NoteID", 0), _ssbEditedNote.toString());
+        }
         if(0 > lngResult){
             System.out.println("failed");
         }else{
