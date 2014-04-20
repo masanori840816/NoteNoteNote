@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">NoteNoteNote</string>
+    <string name="app_name">Note</string>
+    <string name="action_new">New</string>
     <string name="action_save">Save</string>
+    <string name="action_select">Select</string>
+    <string name="action_remove">Remove</string>
     <string name="action_settings">Settings</string>
-    <string name="title_activity_edit_view">EditViewActivity</string>
+    <string name="title_activity_edit_view">Edit</string>
 
 </resources>

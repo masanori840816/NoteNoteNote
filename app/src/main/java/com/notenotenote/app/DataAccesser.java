@@ -6,9 +6,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-/**
- * Created by m_masanori on 2014/04/12.
- */
 public class DataAccesser extends SQLiteOpenHelper{
     private final static String DB_NAME = "notenotenote.db";
     private final static String DB_TABLENAME = "MyNotes";
@@ -20,7 +17,7 @@ public class DataAccesser extends SQLiteOpenHelper{
 
     private ContentValues _ctvContents;
 
-    private final static String QUERY_CREATE = "CREATE TABLE IF NOT EXISTS "
+    private final String QUERY_CREATE = "CREATE TABLE IF NOT EXISTS "
         + DB_TABLENAME
         + " ("
         + TABLE_NOTEID

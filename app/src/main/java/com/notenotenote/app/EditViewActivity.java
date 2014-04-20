@@ -37,9 +37,7 @@ public class EditViewActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_save) {
+        if (item.getItemId() == R.id.action_save) {
             this.saveNote();
             return true;
         }

@@ -28,8 +28,6 @@ public class MainViewActivity extends Activity {
     // 最新のNote or 0件の場合は新規作成を表示するボタンのLayout
     private LinearLayout _llyLastNote;
 
-    private int _intNoteCount = 0;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,7 +45,7 @@ public class MainViewActivity extends Activity {
         SQLiteDatabase sqlDb = _datAccesser.getWritableDatabase();
         Cursor csrNote = _datAccesser.prepareExistingNote(sqlDb);
 
-        _intNoteCount = csrNote.getCount();
+        int intNoteCount = csrNote.getCount();
 
         WindowManager mngWindow = (WindowManager)getSystemService(WINDOW_SERVICE);
 
@@ -59,22 +57,22 @@ public class MainViewActivity extends Activity {
         _lstNoteId = new ArrayList<Integer>();
 
         // DBにデータが1件以上ある場合はID, Noteを取得する.
-        if(0 < _intNoteCount){
+        if(0 < intNoteCount){
 
             LinearLayout.LayoutParams lypOtherNote
                      = new LinearLayout.LayoutParams((pntDisplaySize.x / 2 - 15), (pntDisplaySize.y / 4));
             lypOtherNote.setMargins(10, 10, 0, 0);
 
             // 2件目以降のLayout。小数点切り上げのためにfloatで計算
-            LinearLayout[] llyOtherNotes = new LinearLayout[(int)Math.ceil((float)_intNoteCount / 2)];
+            LinearLayout[] llyOtherNotes = new LinearLayout[(int)Math.ceil((float)intNoteCount / 2)];
             int intLayoutCount = 0;
 
             llyOtherNotes[intLayoutCount] = new LinearLayout(this);
             int intItemCount = 0;
 
-            _btnNotes = new Button[_intNoteCount];
+            _btnNotes = new Button[intNoteCount];
 
-        	for(int i = 0; _intNoteCount > i; i++){
+        	for(int i = 0; intNoteCount > i; i++){
                 if(csrNote.moveToNext()) {
 
                     _btnNotes[i] = new Button(this);
@@ -153,10 +151,23 @@ public class MainViewActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-      int id = item.getItemId();
-      if (id == R.id.action_settings) {
-          return true;
-      }
-      return super.onOptionsItemSelected(item);
+        switch(item.getItemId()){
+        case R.id.action_new:
+            this.addNewNote();
+            return true;
+        case R.id.action_select:
+            return true;
+        case R.id.action_settings:
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+    private void addNewNote(){
+        // ActionBarからNoteを追加する
+        Intent ittMainView = new Intent(MainViewActivity.this, EditViewActivity.class);
+        ittMainView.putExtra(_datAccesser.TABLE_NOTEID, 0);
+        ittMainView.putExtra(_datAccesser.TABLE_NOTE, "");
+        // 次画面のアクティビティ起動
+        startActivity(ittMainView);
     }
 }
