@@ -8,6 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.database.sqlite.SQLiteDatabase;
 import android.widget.EditText;
+import android.widget.Toast;
 
 public class EditViewActivity extends Activity {
 
@@ -25,7 +26,7 @@ public class EditViewActivity extends Activity {
     private void prepareNoteEditor(){
         _etxEditedNote = (EditText)findViewById(R.id.txtEditView);
         // MainViewActivityからテキストを受け取り、表示する
-        _etxEditedNote.setText(getIntent().getStringExtra("Note"));
+        _etxEditedNote.setText(getIntent().getStringExtra(_datAccesser.TABLE_NOTE));
     }
 
     @Override
@@ -52,15 +53,15 @@ public class EditViewActivity extends Activity {
 
         long lngResult = -1;
 
-        if(0 >= getIntent().getIntExtra("NoteID", 0)){
+        if(0 >= getIntent().getIntExtra(_datAccesser.TABLE_NOTEID, 0)){
             lngResult = _datAccesser.insertNewNote(_sqlDb, _ssbEditedNote.toString());
         }else{
-            lngResult = _datAccesser.updateNote(_sqlDb, getIntent().getIntExtra("NoteID", 0), _ssbEditedNote.toString());
+            lngResult = _datAccesser.updateNote(_sqlDb, getIntent().getIntExtra(_datAccesser.TABLE_NOTEID, 0), _ssbEditedNote.toString());
         }
         if(0 > lngResult){
-            System.out.println("failed");
+            Toast.makeText(this, "保存に失敗しました。", Toast.LENGTH_LONG).show();
         }else{
-            System.out.println("Succeeded");
+            Toast.makeText(this, "保存しました。", Toast.LENGTH_LONG).show();
         }
         _sqlDb.close();
     }

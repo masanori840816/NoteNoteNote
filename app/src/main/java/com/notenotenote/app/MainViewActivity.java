@@ -23,6 +23,7 @@ public class MainViewActivity extends Activity {
     private List<Integer> _lstNoteId;
     private View.OnClickListener _oclClickListener;
 
+    DataAccesser _datAccesser;
     private LinearLayout _llyMain;
     // 最新のNote or 0件の場合は新規作成を表示するボタンのLayout
     private LinearLayout _llyLastNote;
@@ -42,9 +43,9 @@ public class MainViewActivity extends Activity {
     }
     private void prepareNoteData(){
 
-        DataAccesser datAccesser = new DataAccesser(this);
-        SQLiteDatabase sqlDb = datAccesser.getWritableDatabase();
-        Cursor csrNote = datAccesser.prepareExistingNote(sqlDb);
+        _datAccesser = new DataAccesser(this);
+        SQLiteDatabase sqlDb = _datAccesser.getWritableDatabase();
+        Cursor csrNote = _datAccesser.prepareExistingNote(sqlDb);
 
         _intNoteCount = csrNote.getCount();
 
@@ -78,9 +79,9 @@ public class MainViewActivity extends Activity {
 
                     _btnNotes[i] = new Button(this);
 
-                    int intNoteId = csrNote.getInt(csrNote.getColumnIndex(datAccesser.TABLE_NOTEID));
+                    int intNoteId = csrNote.getInt(csrNote.getColumnIndex(_datAccesser.TABLE_NOTEID));
                     _btnNotes[i].setId(intNoteId);
-                    _btnNotes[i].setText(csrNote.getString(csrNote.getColumnIndex(datAccesser.TABLE_NOTE)));
+                    _btnNotes[i].setText(csrNote.getString(csrNote.getColumnIndex(_datAccesser.TABLE_NOTE)));
                     _btnNotes[i].setTextSize(10f);
                     _btnNotes[i].setBackgroundColor(Color.rgb(230, 230, 255));
                     // Clickイベント追加
@@ -126,6 +127,8 @@ public class MainViewActivity extends Activity {
             _btnNotes[0].setHeight(pntDisplaySize.y / 3);
             // RelativeLayoutに追加
             _llyLastNote.addView(_btnNotes[0]);
+
+            _lstNoteId.add(0);
         }
         sqlDb.close();
     }
@@ -134,11 +137,8 @@ public class MainViewActivity extends Activity {
                 @Override
                 public void onClick(View view) {
                     Intent ittMainView = new Intent(MainViewActivity.this, EditViewActivity.class);
-                    if(0 > view.getId()) {
-                        view.setId(0);
-                    }
-                    ittMainView.putExtra("NoteID", _btnNotes[_lstNoteId.indexOf(view.getId())].getId());
-                    ittMainView.putExtra("Note", _btnNotes[_lstNoteId.indexOf(view.getId())].getText());
+                    ittMainView.putExtra(_datAccesser.TABLE_NOTEID, _btnNotes[_lstNoteId.indexOf(view.getId())].getId());
+                    ittMainView.putExtra(_datAccesser.TABLE_NOTE, _btnNotes[_lstNoteId.indexOf(view.getId())].getText());
                     // 次画面のアクティビティ起動
                     startActivity(ittMainView);
                 }
