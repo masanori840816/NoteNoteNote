@@ -8,6 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.database.sqlite.SQLiteDatabase;
 import android.widget.EditText;
+import android.widget.ShareActionProvider;
 import android.widget.Toast;
 
 public class EditViewActivity extends Activity {
@@ -16,6 +17,7 @@ public class EditViewActivity extends Activity {
     private static SQLiteDatabase _sqlDb;
     private EditText _etxEditedNote;
     private SpannableStringBuilder _ssbEditedNote;
+    private ShareActionProvider _sapShare;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,12 +34,27 @@ public class EditViewActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.edit_view, menu);
+
+        this.prepareShareAction(menu);
+
         return true;
+    }
+    private void prepareShareAction(Menu menu){
+        // 共有ボタンの作成
+        MenuItem mniShare = menu.findItem(R.id.action_share);
+        _sapShare = (ShareActionProvider) mniShare.getActionProvider();
+
+        Intent iitShare = new Intent(Intent.ACTION_SEND);
+        iitShare.setAction(Intent.ACTION_SEND);
+        iitShare.setType("text/plain");
+        iitShare.putExtra(Intent.EXTRA_TEXT, getIntent().getStringExtra(_datAccesser.TABLE_NOTE));
+        _sapShare.setShareIntent(iitShare);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_save) {
+        switch(item.getItemId()){
+        case R.id.action_save:
             this.saveNote();
             return true;
         }
