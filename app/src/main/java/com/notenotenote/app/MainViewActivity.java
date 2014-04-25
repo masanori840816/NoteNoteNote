@@ -3,7 +3,7 @@ package com.notenotenote.app;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.content.Intent;
+    import android.content.Intent;
 import android.graphics.Point;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
