@@ -1,42 +1,41 @@
 package com.notenotenote.app;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.os.Bundle;
-    import android.content.Intent;
+import android.content.Intent;
 import android.graphics.Point;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.GridView;
+import android.view.ActionMode;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import java.util.ArrayList;
-import java.util.List;
 
 public class MainViewActivity extends Activity {
 
-    private Button[] _btnNotes;
-    private List<Integer> _lstNoteId;
-    private View.OnClickListener _oclClickListener;
+    private ArrayList<Integer> _arlNoteId;
 
-    DataAccesser _datAccesser;
-    private LinearLayout _llyMain;
-    // 最新のNote or 0件の場合は新規作成を表示するボタンのLayout
-    private LinearLayout _llyLastNote;
+    private DataAccesser _datAccesser;
+    // 最新のNote or 0件の場合は新規作成を表示するGridView
+    private GridView _gvwNote;
+    private ArrayList<String> _arlNote = new ArrayList<String>();
 
+    private ActionMode _atmMultipleSelector;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_view);
 
-        _llyMain = (LinearLayout) findViewById(R.id.llyMainView);
-        _llyLastNote = (LinearLayout) findViewById(R.id.llyLastNote);
+        _gvwNote = (GridView) findViewById(R.id.gvwNote);
+        _gvwNote.setChoiceMode(GridView.CHOICE_MODE_MULTIPLE_MODAL);
+        _gvwNote.setMultiChoiceModeListener(new MainMultipleSelector());
 
-        this.prepareOnClickListener();
         this.prepareNoteData();
     }
     private void prepareNoteData(){
@@ -54,93 +53,39 @@ public class MainViewActivity extends Activity {
         Point pntDisplaySize = new Point();
         dspDisplay.getSize(pntDisplaySize);
 
-        _lstNoteId = new ArrayList<Integer>();
+        _arlNoteId = new ArrayList<Integer>();
 
         // DBにデータが1件以上ある場合はID, Noteを取得する.
         if(0 < intNoteCount){
-
-            LinearLayout.LayoutParams lypOtherNote
-                     = new LinearLayout.LayoutParams((pntDisplaySize.x / 2 - 15), (pntDisplaySize.y / 4));
-            lypOtherNote.setMargins(10, 10, 0, 0);
-
-            // 2件目以降のLayout。小数点切り上げのためにfloatで計算
-            LinearLayout[] llyOtherNotes = new LinearLayout[(int)Math.ceil((float)intNoteCount / 2)];
-            int intLayoutCount = 0;
-
-            llyOtherNotes[intLayoutCount] = new LinearLayout(this);
-            int intItemCount = 0;
-
-            _btnNotes = new Button[intNoteCount];
-
         	for(int i = 0; intNoteCount > i; i++){
                 if(csrNote.moveToNext()) {
-
-                    _btnNotes[i] = new Button(this);
-
-                    int intNoteId = csrNote.getInt(csrNote.getColumnIndex(_datAccesser.TABLE_NOTEID));
-                    _btnNotes[i].setId(intNoteId);
-                    _btnNotes[i].setText(csrNote.getString(csrNote.getColumnIndex(_datAccesser.TABLE_NOTE)));
-                    _btnNotes[i].setTextSize(10f);
-                    _btnNotes[i].setBackgroundColor(Color.rgb(230, 230, 255));
-                    // Clickイベント追加
-                    _btnNotes[i].setOnClickListener(_oclClickListener);
-
-                    if(i == 0){
-                        _btnNotes[i].setWidth(pntDisplaySize.x);
-                        _btnNotes[i].setHeight(pntDisplaySize.y / 3);
-                        // RelativeLayoutに追加
-                        _llyLastNote.addView(_btnNotes[i]);
-                    }else{
-                        _btnNotes[i].setLayoutParams(lypOtherNote);
-
-                        if(2 > intItemCount){
-                            // 最新のNote以外は横に3件ずつ並べる
-                            llyOtherNotes[intLayoutCount].addView(_btnNotes[i]);
-                            intItemCount++;
-                        }else{
-                            _llyMain.addView(llyOtherNotes[intLayoutCount]);
-
-                            intLayoutCount++;
-                            // 次のアイテムを入れるLayout
-                            llyOtherNotes[intLayoutCount] = new LinearLayout(this);
-                            llyOtherNotes[intLayoutCount].addView(_btnNotes[i]);
-                            intItemCount = 1;
-                        }
-                    }
-
-                    _lstNoteId.add(intNoteId);
+                    _arlNoteId.add(csrNote.getInt(csrNote.getColumnIndex(_datAccesser.TABLE_NOTEID)));
+                    _arlNote.add(csrNote.getString(csrNote.getColumnIndex(_datAccesser.TABLE_NOTE)));
                 }
         	}
-            _llyMain.addView(llyOtherNotes[intLayoutCount]);
         }else{
-            // データが1件も無い場合は新規作成ボタンを表示する
-            _btnNotes = new Button[1];
-            _btnNotes[0] = new Button(this);
-            _btnNotes[0].setId(0);
-            _btnNotes[0].setText("");
-            _btnNotes[0].setBackgroundColor(Color.rgb(230, 230, 255));
-            // Clickイベント追加
-            _btnNotes[0].setOnClickListener(_oclClickListener);
-            _btnNotes[0].setWidth(pntDisplaySize.x);
-            _btnNotes[0].setHeight(pntDisplaySize.y / 3);
-            // RelativeLayoutに追加
-            _llyLastNote.addView(_btnNotes[0]);
-
-            _lstNoteId.add(0);
+            _arlNote.add("");
+            _arlNoteId.add(0);
         }
+        ArrayAdapter<String> _aadNote = new ArrayAdapter<String>(this, R.layout.layout_main_note, _arlNote);
+
+        // Clickイベント追加
+        _gvwNote.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                public void onItemClick(AdapterView avwParent, View viwView, int intPosition, long lngId) {
+                    // LastNoteの分を追加
+                    moveToEditView((int)lngId, _arlNote.get((int)lngId));
+                }
+            });
+        _gvwNote.setAdapter(_aadNote);
+
         sqlDb.close();
     }
-    private void prepareOnClickListener(){
-        _oclClickListener = new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent ittMainView = new Intent(MainViewActivity.this, EditViewActivity.class);
-                    ittMainView.putExtra(_datAccesser.TABLE_NOTEID, _btnNotes[_lstNoteId.indexOf(view.getId())].getId());
-                    ittMainView.putExtra(_datAccesser.TABLE_NOTE, _btnNotes[_lstNoteId.indexOf(view.getId())].getText());
-                    // 次画面のアクティビティ起動
-                    startActivity(ittMainView);
-                }
-            };
+    public void moveToEditView(int intItemNum, String strNote){
+        Intent ittMainView = new Intent(MainViewActivity.this, EditViewActivity.class);
+        ittMainView.putExtra(_datAccesser.TABLE_NOTEID, _arlNoteId.get(intItemNum));
+        ittMainView.putExtra(_datAccesser.TABLE_NOTE, strNote);
+        // 次画面のアクティビティ起動
+        startActivity(ittMainView);
     }
 
     @Override
@@ -156,6 +101,7 @@ public class MainViewActivity extends Activity {
             this.addNewNote();
             return true;
         case R.id.action_select:
+            _atmMultipleSelector = startActionMode(new MainMultipleSelector());
             return true;
         case R.id.action_settings:
             return true;
@@ -170,4 +116,59 @@ public class MainViewActivity extends Activity {
         // 次画面のアクティビティ起動
         startActivity(ittMainView);
     }
+
+    public class MainMultipleSelector implements GridView.MultiChoiceModeListener {
+        private ArrayList<Integer> _arlCheckedId = new ArrayList<Integer>();
+        private final static int _intBtnDiscardId = 0;
+
+        // 長押しでアイテム選択+削除
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            // ActionBarにボタンを追加
+            menu.add(0, _intBtnDiscardId, Menu.NONE,"Discard").setIcon(R.drawable.ic_action_discard);
+
+            return true;
+        }
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return true;
+        }
+
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            // ActionBarのボタンが選択されたら実行
+            switch(item.getItemId()) {
+            case _intBtnDiscardId:
+                for(int i=0; _arlCheckedId.size() > i; i++){
+                    System.out.println("ID " + _arlCheckedId.get(i));
+                }
+                break;
+            }
+            return true;
+        }
+
+        public void onDestroyActionMode(ActionMode mode) {
+            // 選択モードが解除されたら配列をクリア
+            _arlCheckedId.clear();
+        }
+
+        public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
+            int selectCount = _gvwNote.getCheckedItemCount();
+
+            int intIdNum = _arlCheckedId.indexOf((int)id);
+            // 未選択のIDは配列に追加し、選択済みのIDは配列から削除する
+            if(0 <= intIdNum) {
+                _arlCheckedId.remove(intIdNum);
+            }else{
+                _arlCheckedId.add((int) id);
+            }
+            // 選択したアイテム数を表示する
+            switch (selectCount) {
+                case 1:
+                    mode.setTitle("One item selected");
+                    break;
+                default:
+                    mode.setTitle("" + selectCount + " items selected");
+                    break;
+            }
+        }
+    }
+
 }

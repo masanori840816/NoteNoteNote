@@ -20,6 +20,9 @@ public class EditViewActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        _datAccesser = new DataAccesser(this);
+        
         setContentView(R.layout.activity_edit_view);
         this.prepareNoteEditor();
     }
@@ -49,7 +52,6 @@ public class EditViewActivity extends Activity {
         return false;
     }
     private void saveNote(){
-        _datAccesser = new DataAccesser(this);
         _sqlDb = _datAccesser.getWritableDatabase();
 
         _ssbEditedNote = (SpannableStringBuilder)_etxEditedNote.getText();
